@@ -1,0 +1,39 @@
+---
+name: Tag latest commit
+on:
+  release:
+    types:
+      - "published"
+
+jobs:
+  tag_latest_commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ssh-key: "${{ secrets.COMMIT_KEY }}"
+          fetch-depth: 0
+
+      - run: |
+          version="${GITHUB_REF#refs/tags/}"
+          major_version=$(echo "$version" | cut -d'.' -f1)
+          echo "this release $GITHUB_REF major version is: $major_version"
+
+          echo -e "\nlist all remote tags"
+          git ls-remote --tags
+
+          if git tag --delete "$major_version"; then
+            git push origin --delete "$major_version"
+          else
+            echo "$major_version has not been used yet"
+          fi
+
+          echo -e "\nconfigure commiter"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          echo -e "\ntag latest commit with $major_version"
+          git tag --annotate "$major_version" --message "$major_version" "$GITHUB_SHA"
+
+          echo -e "\npush $major_version to remote"
+          git push origin "$major_version"
