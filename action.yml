@@ -5,6 +5,14 @@ branding:
   icon: 'check'
   color: 'blue'
 inputs:
+  image:
+    description: |
+      The full docker image tag to be verified.
+    required: true
+  config_files:
+    description: |
+      The path to the container structure configuration file.
+    required: true
   version:
     description: |
       The version of container-structure-test to be installed.
@@ -12,19 +20,15 @@ inputs:
       See the key property in https://storage.googleapis.com/container-structure-test for available versions.
     required: false
     default: "latest"
-  image:
-    description: |
-      The full docker image tag to be verified.
-    required: true
-  config_file:
-    description: |
-      The path to the container structure configuration file.
-    required: true
   install_path:
     description: |
       The path to where the executable will be installed to.
     required: false
     default: ".bin"
+  report_file:
+    description: |
+      Write the test report to the specified file. Supported file types are json and junit.
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -69,5 +73,20 @@ runs:
       shell: bash
 
     - run: |
-        container-structure-test test --image "${{ inputs.image }}" --config "${{ inputs.config_file }}"
+        NO_COLOR=""
+        [[ "${{ inputs.no_color }}" == 'true' ]] && NO_COLOR="--no-color"
+
+        PULL_IMAGE=""
+        [[ "${{ inputs.pull_image }}" == 'true' ]] && PULL_IMAGE="--pull"
+
+        REPORT_FILE=""
+        [[ -n "${{ inputs.report_file }}" ]] && REPORT_FILE="--test-report ${{ inputs.report_file }}"
+
+        container-structure-test test \
+          --image "${{ inputs.image }}" \
+          --config "${{ inputs.config_files }}" \
+          "$NO_COLOR" \
+          "$PULL_IMAGE" \
+          "$REPORT_FILE"
+
       shell: bash

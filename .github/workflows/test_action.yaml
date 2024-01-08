@@ -23,4 +23,8 @@ jobs:
       - uses: actungs/container-structure-test-action@feat/implement-action
         with:
           image: ${{ env.image }}
-          config_file: ./test/config.yaml
+          config_files: ./test/config.yaml
+          report_file: report.json
+
+      - run: |
+          cat report.json
