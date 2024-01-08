@@ -2,6 +2,11 @@
 name: "Test action"
 "on":
   push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
 
 jobs:
   test:
@@ -21,7 +26,7 @@ jobs:
           context: ${{ env.test_folder }}
           tags: ${{ env.image }}
 
-      - uses: actungs/container-structure-test-action@feat/implement-action
+      - uses: actungs/container-structure-test-action@master
         with:
           image: ${{ env.image }}
           config_files: ${{ env.test_folder }}/config.yaml
