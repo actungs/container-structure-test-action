@@ -1,5 +1,5 @@
 ---
-name: "Container Structure Test Action"
+name: "Container Structure Test Composite Action"
 description: "A composite action to verify a container structure using GoogleContainerTools/container-structure-test."
 branding:
   icon: 'check'
