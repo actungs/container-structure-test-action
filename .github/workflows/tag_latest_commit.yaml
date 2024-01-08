@@ -1,6 +1,6 @@
 ---
 name: Tag latest commit
-on:
+"on":
   release:
     types:
       - "published"
