@@ -1,0 +1,109 @@
+---
+name: "Container Structure Test Action"
+description: "A composite action to verify a container structure using GoogleContainerTools/container-structure-test."
+branding:
+  icon: 'check'
+  color: 'blue'
+inputs:
+  image:
+    description: |
+      The full docker image tag to be verified.
+    required: true
+  config_files:
+    description: |
+      The path to the container structure configuration file.
+    required: true
+  version:
+    description: |
+      The version of container-structure-test to be installed.
+      Default to 'latest' if not provided.
+      See the key property in https://storage.googleapis.com/container-structure-test for available versions.
+    required: false
+    default: "latest"
+  install_path:
+    description: |
+      The path to where the executable will be installed to.
+    required: false
+    default: ".bin"
+  no_color:
+    description: |
+      No color in the output.
+    required: false
+    default: "true"
+  pull_image:
+    description: |
+      Whether the image should be pulled instead.
+    required: false
+    default: "false"
+  output_format:
+    description: |
+      The output format for the test report.
+      Available format: text, json, junit
+      Default: text
+    default: "text"
+  report_file:
+    description: |
+      Write the test report to the specified file. Supported file types are json and junit.
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: ${{ inputs.install_path }}
+        key: ${{ runner.os }}-container-structure-test
+        restore-keys: |
+          ${{ runner.os }}-container-structure-test
+
+    - run: |
+        if [[ "${{ steps.cache.outputs.cache-hit }}" == 'true' ]]; then
+          echo "container-structure-test found in cache. It will not be installed for this run."
+        else
+          echo "container-structure-test not found in cache. ${{ inputs.version }} version will be installed."
+
+          case "$RUNNER_OS" in
+            Linux)
+              curl --location \
+                --output container-structure-test \
+                "https://storage.googleapis.com/container-structure-test/${{ inputs.version }}/container-structure-test-linux-amd64"
+              ;;
+
+            macOS)
+              curl --location \
+                --output container-structure-test \
+                "https://storage.googleapis.com/container-structure-test/${{ inputs.version }}/container-structure-test-darwin-amd64"
+              ;;
+
+            *)
+              echo "$RUNNER_OS is not supported! Use a linux or macOs one instead."
+              exit 1
+              ;;
+          esac
+
+          mkdir -vp "./${{ inputs.install_path }}"
+          chmod +x container-structure-test
+          mv -v container-structure-test "./${{ inputs.install_path }}/container-structure-test"
+        fi
+
+        echo "./${{ inputs.install_path }}" >> "$GITHUB_PATH"
+
+      shell: bash
+
+    - run: |
+        NO_COLOR=""
+        [[ "${{ inputs.no_color }}" == 'true' ]] && NO_COLOR="--no-color"
+
+        PULL_IMAGE=""
+        [[ "${{ inputs.pull_image }}" == 'true' ]] && PULL_IMAGE="--pull"
+
+        OUTPUT_FORMAT="--output ${{ inputs.output_format }}"
+
+        REPORT_FILE=""
+        [[ -n "${{ inputs.report_file }}" ]] && REPORT_FILE="--test-report ${{ inputs.report_file }}"
+
+        container-structure-test test $NO_COLOR $PULL_IMAGE $OUTPUT_FORMAT $REPORT_FILE \
+          --image "${{ inputs.image }}" \
+          --config "${{ inputs.config_files }}"
+
+      shell: bash

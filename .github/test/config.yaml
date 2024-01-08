@@ -1,0 +1,22 @@
+---
+schemaVersion: 2.0.0
+
+commandTests:
+  - name: 'bash'
+    command: 'bash'
+    args: ['--help']
+    expectedOutput:
+      - '.*GNU bash.*'
+  - name: 'jq'
+    command: 'jq'
+    args: ['--help']
+    expectedOutput:
+      - '.*commandline JSON processor.*'
+  - name: 'curl'
+    command: 'curl'
+    args: ['--help']
+    expectedOutput:
+      - '.*Usage: curl.*'
+
+metadataTest:
+  entrypoint: ['/bin/bash']
