@@ -24,7 +24,8 @@ jobs:
         with:
           image: ${{ env.image }}
           config_files: ./test/config.yaml
+          output_format: json
           report_file: report.json
 
       - run: |
-          cat report.json
+          jq '.' report.json
