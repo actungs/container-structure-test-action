@@ -1,0 +1,22 @@
+---
+name: CI
+"on":
+  push:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./test
+          load: true
+          tags: actungs/test-image:local
+
+      - uses: actungs/container-structure-test-action@feat/implement-action
+        with:
+          image: actungs/test-image:local
+          config_file: ./test/config.yaml
