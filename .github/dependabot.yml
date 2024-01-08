@@ -1,0 +1,17 @@
+---
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/.github/test"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore(docker): "
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore(actions): "
