@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      test_folder: .github/test
       image: actungs/test-image:local
     steps:
       - uses: actions/checkout@v4
@@ -16,16 +17,33 @@ jobs:
 
       - uses: docker/build-push-action@v5
         with:
-          context: ./test
           load: true
+          context: ${{ env.test_folder }}
           tags: ${{ env.image }}
 
       - uses: actungs/container-structure-test-action@feat/implement-action
         with:
           image: ${{ env.image }}
-          config_files: ./test/config.yaml
+          config_files: ${{ env.test_folder }}/config.yaml
           output_format: json
-          report_file: report.json
+          report_file: result.json
 
       - run: |
-          jq '.' report.json
+          echo "Result:"
+          jq . result.json
+
+          if [[ $(jq '.Fail' result.json) != 0 ]]; then
+            echo "Expect Fail to be 0."
+            exit 1
+          fi
+
+          if [[ $(jq '.Pass' result.json) != 4 ]]; then
+            echo "Expect Pass to be 4."
+            exit 1
+          fi
+
+          actual_result_names=$(jq -r '.Results | sort_by(.Name) | .[].Name' result.json | tr "\n" ";")
+          if [[ "$actual_result_names" != 'Command Test: bash;Command Test: curl;Command Test: jq;Metadata Test;' ]]; then
+            echo "Expect Results.Name to be ''"
+            exit 1
+          fi
