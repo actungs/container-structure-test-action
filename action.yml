@@ -60,11 +60,12 @@ runs:
           esac
 
           mkdir -vp "./${{ inputs.install_path }}"
-          echo "./${{ inputs.install_path }}" >> "$GITHUB_PATH"
-
           chmod +x container-structure-test
           mv -v container-structure-test "./${{ inputs.install_path }}/container-structure-test"
         fi
+
+        echo "./${{ inputs.install_path }}" >> "$GITHUB_PATH"
+
       shell: bash
 
     - run: |
