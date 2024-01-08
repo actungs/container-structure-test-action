@@ -1,10 +1,14 @@
 ---
-name: CI
+name: "Test action"
 "on":
   push:
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      image: actungs/test-image:local
     steps:
       - uses: actions/checkout@v4
 
@@ -14,9 +18,9 @@ jobs:
         with:
           context: ./test
           load: true
-          tags: actungs/test-image:local
+          tags: ${{ env.image }}
 
       - uses: actungs/container-structure-test-action@feat/implement-action
         with:
-          image: actungs/test-image:local
+          image: ${{ env.image }}
           config_file: ./test/config.yaml

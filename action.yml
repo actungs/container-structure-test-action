@@ -29,6 +29,7 @@ runs:
   using: "composite"
   steps:
     - uses: actions/cache@v3
+      id: cache
       with:
         path: ${{ inputs.install_path }}
         key: ${{ runner.os }}-container-structure-test
@@ -36,7 +37,7 @@ runs:
           ${{ runner.os }}-container-structure-test
 
     - run: |
-        if [[ -x ${{ inputs.install_path }}/container-structure-test ]]; then
+        if [[ "${{ steps.cache.outputs.cache-hit }}" == 'true' ]]; then
           echo "container-structure-test found in cache. It will not be installed for this run."
         else
           case "$RUNNER_OS" in
@@ -64,7 +65,6 @@ runs:
           chmod +x container-structure-test
           mv -v container-structure-test "./${{ inputs.install_path }}/container-structure-test"
         fi
-
       shell: bash
 
     - run: |
