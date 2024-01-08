@@ -25,6 +25,16 @@ inputs:
       The path to where the executable will be installed to.
     required: false
     default: ".bin"
+  no_color:
+    description: |
+      No color in the output.
+    required: false
+    default: "true"
+  pull_image:
+    description: |
+      Whether the image should be pulled instead.
+    required: false
+    default: "false"
   output_format:
     description: |
       The output format for the test report.
