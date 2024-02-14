@@ -88,8 +88,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - run: |
-          brew install docker
-          colima start
+          brew install podman
+          podman machine init
+          podman machine start
+          echo "DOCKER_HOST=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v4
         with:
@@ -97,8 +99,8 @@ jobs:
           path: /tmp
 
       - run: |
-          docker load --input /tmp/test-image.tar
-          docker image ls -a
+          podman load --input /tmp/test-image.tar
+          podman image ls -a
 
       - uses: actungs/container-structure-test-action@master
         with:
