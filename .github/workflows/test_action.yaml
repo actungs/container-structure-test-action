@@ -13,7 +13,7 @@ jobs:
       test_folder: .github/test
       image: actungs/test-image:local
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: docker/setup-buildx-action@v3
 
