@@ -9,7 +9,7 @@ jobs:
   tag_latest_commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ssh-key: "${{ secrets.COMMIT_KEY }}"
           fetch-depth: 0
