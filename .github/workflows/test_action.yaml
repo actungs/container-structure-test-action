@@ -1,12 +1,14 @@
----
 name: "Test action"
 "on":
   push:
     branches:
       - "master"
+  pull_request:
+    branches:
+      - "master"
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -22,6 +24,83 @@ jobs:
           load: true
           context: ${{ env.test_folder }}
           tags: ${{ env.image }}
+          outputs: type=docker,dest=/tmp/test-image.tar
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-image
+          path: /tmp/test-image.tar
+
+  linux_test:
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 30
+    env:
+      test_folder: .github/test
+      image: actungs/test-image:local
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-image
+          path: /tmp
+
+      - run: |
+          docker load --input /tmp/test-image.tar
+          docker image ls -a
+
+      - uses: actungs/container-structure-test-action@master
+        with:
+          image: ${{ env.image }}
+          config_files: ${{ env.test_folder }}/config.yaml
+          output_format: json
+          report_file: result.json
+
+      - run: |
+          echo "Result:"
+          jq . result.json
+
+          if [[ $(jq '.Fail' result.json) != 0 ]]; then
+            echo "Expect Fail to be 0."
+            exit 1
+          fi
+
+          if [[ $(jq '.Pass' result.json) != 4 ]]; then
+            echo "Expect Pass to be 4."
+            exit 1
+          fi
+
+          actual_result_names=$(jq -r '.Results | sort_by(.Name) | .[].Name' result.json | tr "\n" ";")
+          if [[ "$actual_result_names" != 'Command Test: bash;Command Test: curl;Command Test: jq;Metadata Test;' ]]; then
+            echo "Expect Results.Name to be ''"
+            exit 1
+          fi
+
+  macOs_test:
+    runs-on: macos-latest
+    needs: build
+    timeout-minutes: 30
+    env:
+      test_folder: .github/test
+      image: actungs/test-image:local
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          brew install podman
+          podman machine init
+          podman machine start
+          echo "DOCKER_HOST=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-image
+          path: /tmp
+
+      - run: |
+          podman load --input /tmp/test-image.tar
+          podman image ls -a
 
       - uses: actungs/container-structure-test-action@master
         with:
